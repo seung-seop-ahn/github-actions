@@ -1,0 +1,38 @@
+name: notion
+
+on:
+  pull_request:
+    branches:
+      - main
+      - stage
+    types: [ assigned, unassigned, labeled, unlabeled, opened, edited, closed, reopened, synchronize, converted_to_draft, ready_for_review, locked, unlocked, review_requested, review_request_removed, auto_merge_enabled, auto_merge_disabled ]
+
+permissions:
+  contents: write
+
+jobs:
+  notion_job:
+    runs-on: ubuntu-latest
+    name: add pr to notion
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: sync pr to notion
+        uses: sivashanmukh/github-notion-pr-sync@1.0.0
+        with:
+          notionKey: ${{ secrets.NOTION_TOKEN }}
+          notionDatabaseId: ${{ secrets.NOTION_DATABASE }}
+          githubKey: ${{ secrets.GH_TOKEN }}
+
+      - name: send slack about pr notes
+        if: ${{ github.event.pull_request.merged == true }}
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
+          SLACK_COLOR: ${{ job.status }}
+          SLACK_LINK_NAMES: true
+          SLACK_ICON_EMOJI: ':large_orange_circle:'
+          SLACK_USERNAME: github-actions
+          SLACK_TITLE: release
+          SLACK_MESSAGE: 'production release'
