@@ -24,6 +24,14 @@ jobs:
           notionDatabaseId: ${{ secrets.NOTION_DATABASE }}
           githubKey: ${{ secrets.GH_TOKEN }}
 
+      - name: set slack icon
+        run: |
+          if [[ github.head_ref == 'stage' ]]; then
+              echo "SLACK_ICON=':large_blue_circle:'" >> "$GITHUB_ENV"
+          else
+              echo "SLACK_ICON=':large_green_circle:'" >> "$GITHUB_ENV"
+          fi
+
       - name: send slack about pr notes
         if: ${{ github.event.pull_request.merged == true }}
         uses: rtCamp/action-slack-notify@v2
@@ -32,7 +40,7 @@ jobs:
           SLACK_CHANNEL: ${{ secrets.SLACK_CHANNEL }}
           SLACK_COLOR: ${{ job.status }}
           SLACK_LINK_NAMES: true
-          SLACK_ICON_EMOJI: ':large_orange_circle:'
+          SLACK_ICON_EMOJI: ${{ env.SLACK_ICON }}
           SLACK_USERNAME: github-actions
           SLACK_TITLE: release
           SLACK_MESSAGE: 'production release'
